@@ -1,72 +1,111 @@
 // src/App.tsx
 
-import React, { useState } from 'react';
-import { ethers } from 'ethers';
-import { Card, CardContent, Button, Typography, IconButton, Tooltip, Alert } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, Button, Typography, IconButton, Divider, Tooltip } from '@mui/material';
 import { ContentCopy } from '@mui/icons-material';
+import { useMetamask } from '../contexts/MetamaskContext';
 
 const ConnectMetamask: React.FC = () => {
-  const [address, setAddress] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { provider, signer, network, connectMetamask } = useMetamask();
+  const [balance, setBalance] = useState<string | null>(null);
+  const [accountAddress, setAccountAddress] = useState<string | null>(null);
+  const [networkName, setNetworkName] = useState<string | null>(null);
+  const [networkChainId, setNetworkChainId] = useState<string | null>(null);
 
   const handleCopyAddress = () => {
-    if (address) {
-      navigator.clipboard.writeText(address);
+    if (accountAddress) {
+      navigator.clipboard.writeText(accountAddress);
     }
   };
 
-  const connectMetamask = async () => {
-    setError(null);
-    if (typeof window.ethereum !== 'undefined') {
-      try {
-        // Metamaskへの接続をリクエスト
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+  const fetchAccountDetails = async () => {
+    try {
+      if (signer) {
+        const address = await signer.getAddress();
+        setAccountAddress(address);
 
-        // ethers.jsでプロバイダーを作成
-        const provider = new ethers.BrowserProvider(window.ethereum);
-
-        // サインインされたアカウントを取得
-        const signer = await provider.getSigner();
-        const accountAddress = await signer.getAddress();
-
-        // アカウント情報をステートに保存
-        setAddress(accountAddress);
-      } catch (error) {
-        const errorMessage = (error as Error).message;
-        console.error('Error connecting to Metamask:', errorMessage);
-        setError(errorMessage);
+        if (provider) {
+          const balance = await provider.getBalance(address);
+          setBalance(balance.toString());
+        }
       }
-    } else {
-      setError('Metamask is not installed. Please install Metamask to use this feature.');
+
+      if (network) {
+        setNetworkName(network.name);
+        setNetworkChainId(network.chainId.toString());
+      }
+    } catch (error) {
+      console.error('Error fetching account details:', error);
     }
   };
+
+  const handleConnectMetamask = async () => {
+    try {
+      await connectMetamask();
+      await fetchAccountDetails();
+    } catch (error) {
+      console.error('Failed to connect Metamask:', error);
+    }
+  };
+
+  useEffect(() => {
+    console.log(provider);
+    if (provider && signer && network) {
+      fetchAccountDetails();
+    }
+  }, [provider, signer, network]);
 
   return (
     <>
-      <Button variant="contained" color="primary" onClick={connectMetamask} sx={{ mt: 2 }}>
+      <Button variant="contained" color="primary" onClick={handleConnectMetamask} sx={{ mt: 2 }}>
         Connect Metamask
       </Button>
-      {address && (
+      {(accountAddress || balance) && (
         <Card sx={{ mt: 3 }}>
           <CardContent>
-            <Typography variant="h6">Account Address:</Typography>
-            <Typography variant="body1" color="textSecondary">
-              {address}
-              <Tooltip title="Copy to clipboard" placement="top">
-                <IconButton
-                  aria-label="copy wallet address"
-                  onClick={handleCopyAddress}
-                  edge="end"
-                  sx={{ ml: 1 }}
-                >
-                  <ContentCopy />
-                </IconButton>
-              </Tooltip>
-            </Typography>
+            {accountAddress && (
+              <>
+                <Typography variant="h6">Account Address:</Typography>
+                <Typography variant="body1" color="textSecondary">
+                  {accountAddress}
+                  <Tooltip title="Copy to clipboard" placement="top">
+                    <IconButton
+                      aria-label="copy wallet address"
+                      onClick={handleCopyAddress}
+                      edge="end"
+                      sx={{ ml: 1 }}
+                    >
+                      <ContentCopy />
+                    </IconButton>
+                  </Tooltip>
+                </Typography>
+              </>
+            )}
+            <Divider sx={{ my: 2 }} />
+            {balance && (
+              <>
+                <Typography variant="h6">Balance:</Typography>
+                <Typography variant="body1" color="textSecondary">
+                  {balance} wei
+                </Typography>
+              </>
+            )}
+            <Divider sx={{ my: 2 }} />
+            {(networkName && networkChainId) && (
+              <>
+                <Typography variant="h6">Network Name:</Typography>
+                <Typography variant="body1" color="textSecondary">
+                  {networkName}
+                </Typography>
+                <Typography variant="h6">Chain ID:</Typography>
+                <Typography variant="body1" color="textSecondary">
+                  {networkChainId}
+                </Typography>
+              </>
+            )}
           </CardContent>
         </Card>
       )}
-      {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
     </>
   );
 };
