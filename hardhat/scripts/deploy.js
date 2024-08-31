@@ -1,5 +1,4 @@
 const { ethers } = require('hardhat');
-const { writeFileSync } = require('fs');
 const fs = require('fs');
 const path = require('path');
 
@@ -10,25 +9,28 @@ if (!fs.existsSync(dataDirectory)) {
   fs.mkdirSync(dataDirectory, { recursive: true });
 }
 
+// コントラクト情報ファイルのパス
+const contractFilePath = path.join(__dirname, '..', 'data', 'contracts.json');
+
 // コントラクトをデプロイする関数
 async function deployContract(contractName, constructorArgs = []) {
   try {
-    console.log(`Starting deployment of ${contractName}...`);
+    console.log(`[INFO] Starting deployment of ${contractName}...`);
 
     const signer = await ethers.provider.getSigner();
 
     // コントラクトをデプロイ
     const contract = await ethers.deployContract(contractName, constructorArgs);
-    console.log('Contract deployment transaction sent.');
+    console.log(`[INFO] Contract deployment transaction sent for ${contractName}.`);
 
     // デプロイ完了まで待機
     await contract.waitForDeployment();
-    console.log('Contract deployed.');
+    console.log(`[INFO] Contract ${contractName} deployed.`);
 
     // トランザクションレシートを取得
     const txReceipt = await contract.deploymentTransaction().wait();
-    console.log(`Contract address: ${txReceipt.contractAddress}`);
-    console.log(`Transaction hash: ${txReceipt.hash}`);
+    console.log(`[INFO] ${contractName} contract address: ${txReceipt.contractAddress}`);
+    console.log(`[INFO] ${contractName} transaction hash: ${txReceipt.hash}`);
 
     return { signer, contract, txReceipt };
   } catch (error) {
@@ -39,39 +41,32 @@ async function deployContract(contractName, constructorArgs = []) {
 // メイン処理
 async function main() {
   try {
-    // Forwarderコントラクトをデプロイ
-    const { signer: forwarderSigner, contract: forwarderContract, txReceipt: forwarderTxReceipt } = await deployContract('MyForwarder');
+    // ファイルをチェックして、コントラクトが既に存在するかを確認
+    if (fs.existsSync(contractFilePath)) {
+      throw new Error('Contracts already exist in the file');
+    }
 
+    // Forwarderコントラクトをデプロイ
+    const { signer: forwarderSigner, contract: forwarderContract } = await deployContract('MyForwarder');
     const forwarderSignerAddress = forwarderSigner.address;
     const forwarderContractAddress = await forwarderContract.getAddress();
     const forwarderContractABI = forwarderContract.interface.formatJson();
-
-    console.log(`Forwarder Signer address: ${forwarderSignerAddress}`);
-    console.log(`Forwarder Contract address: ${forwarderContractAddress}`);
-    console.log(`Forwarder Contract ABI: ${forwarderContractABI}`);
+    console.log(`[INFO] Forwarder Contract address: ${forwarderContractAddress}`);
 
     // Recipientコントラクトをデプロイ
-    const { signer: recipientSigner, contract: recipientContract, txReceipt: recipientTxReceipt } = await deployContract('MyRecipient', [forwarderContractAddress]);
-
+    const { signer: recipientSigner, contract: recipientContract } = await deployContract('MyRecipient', [forwarderContractAddress]);
     const recipientSignerAddress = recipientSigner.address;
     const recipientContractAddress = await recipientContract.getAddress();
     const recipientContractABI = recipientContract.interface.formatJson();
-
-    console.log(`Recipient Signer address: ${recipientSignerAddress}`);
-    console.log(`Recipient Contract address: ${recipientContractAddress}`);
-    console.log(`Recipient Contract ABI: ${recipientContractABI}`);
+    console.log(`[INFO] Recipient Contract address: ${recipientContractAddress}`);
 
     // デプロイされたアドレスをJSONファイルに保存
     const contractData = {
-      forwarderSignerAddress : forwarderSignerAddress,
-      forwarderContractAddress : forwarderContractAddress,
-      forwarderContractABI : forwarderContractABI,
-      recipientSignerAddress : recipientSignerAddress,
-      recipientContractAddress : recipientContractAddress,
-      recipientContractABI : recipientContractABI,
+      forwarder: { signerAddress: forwarderSignerAddress, contractAddress: forwarderContractAddress, contractABI: forwarderContractABI },
+      recipient: { signerAddress: recipientSignerAddress, contractAddress: recipientContractAddress, contractABI: recipientContractABI },
     };
-    const filePath = path.join(dataDirectory, `contract.json`);
-    await fs.promises.writeFile(filePath, JSON.stringify(contractData, null, 2));
+    await fs.promises.writeFile(contractFilePath, JSON.stringify(contractData, null, 2));
+    console.log(`[INFO] Contract data saved to ${contractFilePath}`);
   } catch (error) {
     console.error('Error in main():', error.message);
     process.exit(1);

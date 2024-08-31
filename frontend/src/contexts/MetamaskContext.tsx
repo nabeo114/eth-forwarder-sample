@@ -23,7 +23,7 @@ export const MetamaskProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
   const [network, setNetwork] = useState<ethers.Network | null>(null);
 
-  // Metamask に接続する関数。
+  // Metamask に接続する関数
   const connectMetamask = async () => {
     if (typeof window.ethereum !== 'undefined') {
       try {
