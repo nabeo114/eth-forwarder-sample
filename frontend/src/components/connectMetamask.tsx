@@ -88,14 +88,11 @@ const ConnectMetamask: React.FC = () => {
               </>
             )}
             {balance && (
-              <>
-                <Divider sx={{ my: 2 }} />
-                <Typography variant="h6">
-                  Balance: <Typography component="span" variant="body1" color="textSecondary">
-                    {balance}
-                  </Typography>
+              <Typography variant="h6">
+                Balance: <Typography component="span" variant="body1" color="textSecondary">
+                  {balance}
                 </Typography>
-              </>
+              </Typography>
             )}
             {(networkName && networkChainId) && (
               <>

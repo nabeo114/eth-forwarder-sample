@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, Button, Typography, Alert } from '@mui/material';
+import { useMetamask } from '../contexts/MetamaskContext';
 import { useContracts } from '../contexts/ContractContext';
 
 const LoadContracts: React.FC = () => {
+  const { signer } = useMetamask();
   const { forwarder, recipient, loadContracts } = useContracts();
   const [forwarderAddress, setForwarderAddress] = useState<string | null>(null);
   const [recipientAddress, setRecipientAddress] = useState<string | null>(null);
@@ -27,7 +29,7 @@ const LoadContracts: React.FC = () => {
   const handleLoadContracts = async () => {
     setError(null);
     try {
-      await loadContracts();
+      await loadContracts(signer);
       await fetchContractDetails();
     } catch (error) {
       const errorMessage = (error as Error).message;
@@ -37,6 +39,7 @@ const LoadContracts: React.FC = () => {
   };
 
   useEffect(() => {
+    console.log("useEffect:", { forwarder, recipient, signer });
     if (forwarder && recipient) {
       fetchContractDetails();
     }

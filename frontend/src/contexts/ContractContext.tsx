@@ -1,12 +1,11 @@
 import React, { createContext, useContext, useState } from 'react';
 import { ethers } from 'ethers';
-import { useMetamask } from './MetamaskContext';
 import contracts from '../../../hardhat/data/contracts.json';
 
 interface ContractContextType {
   forwarder: ethers.Contract | null;
   recipient: ethers.Contract | null;
-  loadContracts: () => Promise<void>;
+  loadContracts: (signer: ethers.Signer | null) => Promise<void>;
 }
 
 const ContractContext = createContext<ContractContextType | undefined>(undefined);
@@ -20,27 +19,34 @@ export const useContracts = () => {
 };
 
 export const ContractProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { signer } = useMetamask();
   const [forwarder, setForwarder] = useState<ethers.Contract | null>(null);
   const [recipient, setRecipient] = useState<ethers.Contract | null>(null);
 
-  const loadContracts = async () => {
+  const loadContracts = async (signer: ethers.Signer | null) => {
     try {
-      // Forwarderコントラクトのインスタンスを作成
-      const forwarderContract = new ethers.Contract(
-        contracts.forwarder.contractAddress,
-        JSON.parse(contracts.forwarder.contractABI),
-        signer
-      );
-      setForwarder(forwarderContract);
+      if (signer) {
+        if (contracts.forwarder && contracts.recipient) {
+          // Forwarderコントラクトのインスタンスを作成
+          const forwarderContract = new ethers.Contract(
+            contracts.forwarder.contractAddress,
+            JSON.parse(contracts.forwarder.contractABI),
+            signer
+          );
+          setForwarder(forwarderContract);
 
-      // Recipientコントラクトのインスタンスを作成
-      const recipientContract = new ethers.Contract(
-        contracts.recipient.contractAddress,
-        JSON.parse(contracts.recipient.contractABI),
-        signer
-      );
-      setRecipient(recipientContract);
+          // Recipientコントラクトのインスタンスを作成
+          const recipientContract = new ethers.Contract(
+            contracts.recipient.contractAddress,
+            JSON.parse(contracts.recipient.contractABI),
+            signer
+          );
+          setRecipient(recipientContract);
+        } else {
+          console.error('Contracts data is missing');
+        }
+      } else {
+        console.error('Signer is not available');
+      }
     } catch (error) {
       console.error('Failed to load contracts:', error);
     }

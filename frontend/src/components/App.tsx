@@ -2,6 +2,7 @@ import React from 'react';
 import { Container, Box, Card, CardContent, Typography } from '@mui/material';
 import ConnectMetamask from './connectMetamask';
 import LoadContracts from './loadContracts';
+import LoadWallets from './loadWallets';
 
 const App: React.FC = () => {
   return (
@@ -9,7 +10,7 @@ const App: React.FC = () => {
       <Box sx={{ mt: 5 }}>
         <Card sx={{ mt: 3 }}>
           <CardContent>
-            <Typography variant="h4">Metamask Connection</Typography>
+            <Typography variant="h4">Metamask</Typography>
             <ConnectMetamask />
           </CardContent>
         </Card>
@@ -17,6 +18,12 @@ const App: React.FC = () => {
           <CardContent>
             <Typography variant="h4">Contracts</Typography>
             <LoadContracts />
+          </CardContent>
+        </Card>
+        <Card sx={{ mt: 3 }}>
+          <CardContent>
+            <Typography variant="h4">Accounts</Typography>
+            <LoadWallets />
           </CardContent>
         </Card>
       </Box>
