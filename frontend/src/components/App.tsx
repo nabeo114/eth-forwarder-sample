@@ -22,7 +22,7 @@ const App: React.FC = () => {
         </Card>
         <Card sx={{ mt: 3 }}>
           <CardContent>
-            <Typography variant="h4">Accounts</Typography>
+            <Typography variant="h4">Wallets</Typography>
             <LoadWallets />
           </CardContent>
         </Card>
