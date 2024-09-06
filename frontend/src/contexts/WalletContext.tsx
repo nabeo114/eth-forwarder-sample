@@ -32,18 +32,24 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         console.error('Signer is not available');
       }
 
+      // 環境変数が設定されているか確認
+      const keystorePassword = process.env.KEYSTORE_PASSWORD;
+      if (!keystorePassword) {
+        throw new Error('KEYSTORE_PASSWORD is not defined in environment variables');
+      }
+
       if (accounts.user1 && accounts.user2) {
         // User1ウォレットのインスタンスを作成
         const user1Wallet = await ethers.Wallet.fromEncryptedJson(
           accounts.user1.keystore,
-          accounts.user1.password
+          keystorePassword
         );
         setUser1(user1Wallet);
 
         // User2ウォレットのインスタンスを作成
         const user2Wallet = await ethers.Wallet.fromEncryptedJson(
           accounts.user2.keystore,
-          accounts.user2.password
+          keystorePassword
         );
         setUser2(user2Wallet);
       } else {

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "account": "node scripts/createAccounts.js",
+    "account": "node scripts/setupAccounts.js",
     "deploy": "npx hardhat run scripts/deploy.js --network amoy",
     "test": "npx hardhat test",
     "clean": "npx hardhat clean",

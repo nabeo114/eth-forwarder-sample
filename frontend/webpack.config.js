@@ -1,5 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const webpack = require('webpack');
+const dotenv = require('dotenv').config();
 
 module.exports = {
   mode: 'development',
@@ -23,6 +25,10 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       template: './src/index.html',
+    }),
+    new webpack.DefinePlugin({
+      'process.env': JSON.stringify(dotenv.parsed), // 環境変数をフロントエンドに注入
+      // 本番環境では.envファイルの扱いに注意。サーバーサイドのみで利用すべき
     }),
   ],
   devServer: {
