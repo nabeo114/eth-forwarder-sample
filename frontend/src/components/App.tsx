@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container, Box, Card, CardContent, Typography } from '@mui/material';
-import ConnectMetamask from './connectMetamask';
+import ConnectNetwork from './connectNetwork';
 import LoadContracts from './loadContracts';
 import LoadWallets from './loadWallets';
 
@@ -10,8 +10,8 @@ const App: React.FC = () => {
       <Box sx={{ mt: 5 }}>
         <Card sx={{ mt: 3 }}>
           <CardContent>
-            <Typography variant="h4">Metamask</Typography>
-            <ConnectMetamask />
+            <Typography variant="h4">Network</Typography>
+            <ConnectNetwork />
           </CardContent>
         </Card>
         <Card sx={{ mt: 3 }}>

@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { AbiCoder } from 'ethers';
 import { Card, CardContent, Button, Typography, Divider, Alert } from '@mui/material';
-import { useMetamask } from '../contexts/MetamaskContext';
+import { useNetwork } from '../contexts/NetworkContext';
 import { useContracts } from '../contexts/ContractContext';
 import { useWallets } from '../contexts/WalletContext';
 import contracts from '../../../hardhat/data/contracts.json';
 
 const LoadWallets: React.FC = () => {
-  const { provider, signer } = useMetamask();
+  const { provider } = useNetwork();
   const { recipient } = useContracts();
   const { relayer, user1, user2, loadWallets } = useWallets();
   const [relayerAddress, setRelayerAddress] = useState<string | null>(null);
@@ -65,7 +65,7 @@ const LoadWallets: React.FC = () => {
   const handleLoadWallets = async () => {
     setError(null);
     try {
-      await loadWallets(signer);
+      await loadWallets(provider);
       await fetchWalletDetails();
       await fetchTokenBalance();
     } catch (error) {
@@ -252,7 +252,7 @@ const LoadWallets: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log("useEffect:", { relayer, user1, user2, provider, signer });
+    console.log("useEffect:", { relayer, user1, user2, provider });
     if (relayer && user1 && user2 ) {
       fetchWalletDetails();
       fetchTokenBalance();

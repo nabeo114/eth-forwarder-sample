@@ -5,7 +5,8 @@ import contracts from '../../../hardhat/data/contracts.json';
 interface ContractContextType {
   forwarder: ethers.Contract | null;
   recipient: ethers.Contract | null;
-  loadContracts: (signer: ethers.Signer | null) => Promise<void>;
+  loadContracts: (provider: ethers.Provider | null) => Promise<void>;
+  error: string | null;
 }
 
 const ContractContext = createContext<ContractContextType | undefined>(undefined);
@@ -21,16 +22,18 @@ export const useContracts = () => {
 export const ContractProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [forwarder, setForwarder] = useState<ethers.Contract | null>(null);
   const [recipient, setRecipient] = useState<ethers.Contract | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const loadContracts = async (signer: ethers.Signer | null) => {
+  const loadContracts = async (provider: ethers.Provider | null) => {
+    setError(null);
     try {
-      if (signer) {
+      if (provider) {
         if (contracts.forwarder && contracts.recipient) {
           // Forwarderコントラクトのインスタンスを作成
           const forwarderContract = new ethers.Contract(
             contracts.forwarder.contractAddress,
             JSON.parse(contracts.forwarder.contractABI),
-            signer
+            provider
           );
           setForwarder(forwarderContract);
 
@@ -38,22 +41,22 @@ export const ContractProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           const recipientContract = new ethers.Contract(
             contracts.recipient.contractAddress,
             JSON.parse(contracts.recipient.contractABI),
-            signer
+            provider
           );
           setRecipient(recipientContract);
         } else {
-          console.error('Contracts data is missing');
+          throw new Error('Contracts data is missing');
         }
       } else {
-        console.error('Signer is not available');
+        throw new Error('Provider is not available');
       }
     } catch (error) {
-      console.error('Failed to load contracts:', error);
+      setError((error as Error).message);
     }
   };
 
   return (
-    <ContractContext.Provider value={{ forwarder, recipient, loadContracts }}>
+    <ContractContext.Provider value={{ forwarder, recipient, loadContracts, error }}>
       {children}
     </ContractContext.Provider>
   );

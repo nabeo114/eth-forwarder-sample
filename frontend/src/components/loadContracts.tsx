@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, Button, Typography, Alert } from '@mui/material';
-import { useMetamask } from '../contexts/MetamaskContext';
+import { useNetwork } from '../contexts/NetworkContext';
 import { useContracts } from '../contexts/ContractContext';
 
 const LoadContracts: React.FC = () => {
-  const { signer } = useMetamask();
-  const { forwarder, recipient, loadContracts } = useContracts();
+  const { provider } = useNetwork();
+  const { forwarder, recipient, loadContracts, error: contextError } = useContracts();
   const [forwarderAddress, setForwarderAddress] = useState<string | null>(null);
   const [recipientAddress, setRecipientAddress] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchContractDetails = async () => {
@@ -28,18 +29,21 @@ const LoadContracts: React.FC = () => {
 
   const handleLoadContracts = async () => {
     setError(null);
+    setLoading(true);
     try {
-      await loadContracts(signer);
+      await loadContracts(provider);
       await fetchContractDetails();
     } catch (error) {
       const errorMessage = (error as Error).message;
       console.error('Error loading contracts:', errorMessage);
       setError(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    console.log("useEffect:", { forwarder, recipient, signer });
+    console.log("useEffect:", { forwarder, recipient, provider, contextError });
     if (forwarder && recipient) {
       fetchContractDetails();
     }
@@ -47,10 +51,14 @@ const LoadContracts: React.FC = () => {
 
   return (
     <>
-      <Button variant="contained" color="primary" onClick={handleLoadContracts} sx={{ mt: 2 }}>
-        Load Contracts
+      <Button variant="contained" color="primary" onClick={handleLoadContracts} sx={{ mt: 2 }} disabled={loading}>
+        {loading ? 'Connecting...' : 'Load Contracts'}
       </Button>
-      {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+      {(contextError || error) && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {contextError || error}
+        </Alert>
+      )}
       {(forwarder || recipient) && (
         <Card sx={{ mt: 3 }}>
           <CardContent>
