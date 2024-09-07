@@ -10,7 +10,7 @@ import contracts from '../../../hardhat/data/contracts.json';
 const LoadWallets: React.FC = () => {
   const { provider } = useNetwork();
   const { recipient } = useContracts();
-  const { relayer, user1, user2, loadWallets } = useWallets();
+  const { relayer, user1, user2, loadWallets, error: walletsError } = useWallets();
   const [relayerAddress, setRelayerAddress] = useState<string | null>(null);
   const [relayerNativeBalance, setRelayerNativeBalance] = useState<string | null>(null);
   const [relayerTokenBalance, setRelayerTokenBalance] = useState<string | null>(null);
@@ -20,6 +20,7 @@ const LoadWallets: React.FC = () => {
   const [user2Address, setUser2Address] = useState<string | null>(null);
   const [user2NativeBalance, setUser2NativeBalance] = useState<string | null>(null);
   const [user2TokenBalance, setUser2TokenBalance] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchWalletDetails = async () => {
@@ -64,6 +65,7 @@ const LoadWallets: React.FC = () => {
 
   const handleLoadWallets = async () => {
     setError(null);
+    setLoading(true);
     try {
       await loadWallets(provider);
       await fetchWalletDetails();
@@ -72,6 +74,8 @@ const LoadWallets: React.FC = () => {
       const errorMessage = (error as Error).message;
       console.error('Error loading wallets:', errorMessage);
       setError(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -252,7 +256,7 @@ const LoadWallets: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log("useEffect:", { relayer, user1, user2, provider });
+    console.log("useEffect:", { relayer, user1, user2, recipient });
     if (relayer && user1 && user2 ) {
       fetchWalletDetails();
       fetchTokenBalance();
@@ -261,13 +265,17 @@ const LoadWallets: React.FC = () => {
 
   return (
     <>
-      <Button variant="contained" color="primary" onClick={handleLoadWallets} sx={{ mt: 2 }}>
-        Load Wallets
+      <Button variant="contained" color="primary" onClick={handleLoadWallets} sx={{ mt: 2 }} disabled={loading}>
+        {loading ? 'Connecting...' : 'Load Wallets'}
       </Button>
       <Button variant="contained" color="secondary" onClick={handleMintTokens} sx={{ mt: 2, ml: 2 }}>
         Mint 1000 tokens to Users
       </Button>
-      {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+      {(walletsError || error) && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {walletsError || error}
+        </Alert>
+      )}
       {((relayerAddress && relayerNativeBalance) || (user1Address && user1NativeBalance) || (user2Address && user2NativeBalance)) && (
         <Card sx={{ mt: 3 }}>
           <CardContent>

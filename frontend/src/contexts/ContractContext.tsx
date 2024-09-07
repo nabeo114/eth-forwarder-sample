@@ -27,28 +27,28 @@ export const ContractProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const loadContracts = async (provider: ethers.Provider | null) => {
     setError(null);
     try {
-      if (provider) {
-        if (contracts.forwarder && contracts.recipient) {
-          // Forwarderコントラクトのインスタンスを作成
-          const forwarderContract = new ethers.Contract(
-            contracts.forwarder.contractAddress,
-            JSON.parse(contracts.forwarder.contractABI),
-            provider
-          );
-          setForwarder(forwarderContract);
+      if (!provider) {
+        throw new Error('Provider is required to connect contracts');
+      }
 
-          // Recipientコントラクトのインスタンスを作成
-          const recipientContract = new ethers.Contract(
-            contracts.recipient.contractAddress,
-            JSON.parse(contracts.recipient.contractABI),
-            provider
-          );
-          setRecipient(recipientContract);
-        } else {
-          throw new Error('Contracts data is missing');
-        }
+      if (contracts.forwarder && contracts.recipient) {
+        // Forwarderコントラクトのインスタンスを作成
+        const forwarderContract = new ethers.Contract(
+          contracts.forwarder.contractAddress,
+          JSON.parse(contracts.forwarder.contractABI),
+          provider
+        );
+        setForwarder(forwarderContract);
+
+        // Recipientコントラクトのインスタンスを作成
+        const recipientContract = new ethers.Contract(
+          contracts.recipient.contractAddress,
+          JSON.parse(contracts.recipient.contractABI),
+          provider
+        );
+        setRecipient(recipientContract);
       } else {
-        throw new Error('Provider is not available');
+        throw new Error('Contracts data is missing');
       }
     } catch (error) {
       setError((error as Error).message);

@@ -7,6 +7,7 @@ interface WalletContextType {
   user1: ethers.Signer | null;
   user2: ethers.Signer | null;
   loadWallets: (provider: ethers.Provider | null) => Promise<void>;
+  error: string | null;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -23,8 +24,10 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [relayer, setRelayer] = useState<ethers.Signer | null>(null);
   const [user1, setUser1] = useState<ethers.Signer | null>(null);
   const [user2, setUser2] = useState<ethers.Signer | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const loadWallets = async (provider: ethers.Provider | null) => {
+    setError(null);
     try {
       if (!provider) {
         throw new Error('Provider is required to connect wallets');
@@ -61,15 +64,15 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const user2Connected = user2Wallet.connect(provider);
         setUser2(user2Connected);
       } else {
-        console.error('Wallets data is missing');
+        throw new Error('Wallets data is missing');
       }
     } catch (error) {
-      console.error('Failed to load wallets:', error);
+      setError((error as Error).message);
     }
   };
 
   return (
-    <WalletContext.Provider value={{ relayer, user1, user2, loadWallets }}>
+    <WalletContext.Provider value={{ relayer, user1, user2, loadWallets, error }}>
       {children}
     </WalletContext.Provider>
   );

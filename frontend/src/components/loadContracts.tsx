@@ -5,7 +5,7 @@ import { useContracts } from '../contexts/ContractContext';
 
 const LoadContracts: React.FC = () => {
   const { provider } = useNetwork();
-  const { forwarder, recipient, loadContracts, error: contextError } = useContracts();
+  const { forwarder, recipient, loadContracts, error: contractsError } = useContracts();
   const [forwarderAddress, setForwarderAddress] = useState<string | null>(null);
   const [recipientAddress, setRecipientAddress] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -43,7 +43,7 @@ const LoadContracts: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log("useEffect:", { forwarder, recipient, provider, contextError });
+    console.log("useEffect:", { forwarder, recipient, provider, contractsError });
     if (forwarder && recipient) {
       fetchContractDetails();
     }
@@ -54,9 +54,9 @@ const LoadContracts: React.FC = () => {
       <Button variant="contained" color="primary" onClick={handleLoadContracts} sx={{ mt: 2 }} disabled={loading}>
         {loading ? 'Connecting...' : 'Load Contracts'}
       </Button>
-      {(contextError || error) && (
+      {(contractsError || error) && (
         <Alert severity="error" sx={{ mt: 2 }}>
-          {contextError || error}
+          {contractsError || error}
         </Alert>
       )}
       {(forwarder || recipient) && (
