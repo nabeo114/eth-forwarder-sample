@@ -76,7 +76,7 @@ const MetaTransaction: React.FC = () => {
     setTransferLoading(true);
     try {
       if (!provider || !forwarder || !recipient || !relayer || !user1 || !user2) {
-        setTransferError('Provider, Forwarder, Recipient, Relayer, User1 and User1 are required to transfer tokens');
+        setTransferError('Provider, Forwarder, Recipient, Relayer, User1 and User2 are required to transfer tokens');
         return;
       }
 
@@ -228,7 +228,7 @@ const MetaTransaction: React.FC = () => {
             />
           </Tooltip>
           <Button variant="contained" color="primary" onClick={handleTransferTokens} sx={{ mt: 2}} disabled={transferLoading || isNaN(transferAmount) || transferAmount <= 0}>
-            {transferLoading ? <CircularProgress size={24} /> : 'Transfer tokens (MetaTransaction)'}
+            {transferLoading ? <CircularProgress size={24} /> : 'Transfer tokens (Meta-Transaction)'}
           </Button>
           {transferError && <Alert severity="error" sx={{ mt: 2 }}>{transferError}</Alert>}
         </CardContent>
