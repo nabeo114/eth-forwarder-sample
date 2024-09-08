@@ -28,11 +28,13 @@ const MetaTransaction: React.FC = () => {
   const handleMintUserChange = (e: SelectChangeEvent<string>) => {
     const selectedUser = e.target.value as string;
     setMintUser(selectedUser);
+    setMintError(null);
   };
 
   const handleTransferUserChange = (e: SelectChangeEvent<string>) => {
     const selectedUser = e.target.value as string;
     setTransferUser(selectedUser);
+    setTransferError(null);
   };
 
   // ミントの処理を開始する関数

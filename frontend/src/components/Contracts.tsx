@@ -51,7 +51,7 @@ const Contracts: React.FC = () => {
   return (
     <>
       <Button variant="contained" color="primary" onClick={handleLoadContracts} sx={{ mt: 2 }} disabled={loading}>
-        {loading ? 'Connecting...' : 'Load Contracts'}
+        {loading ? 'Loading...' : 'Load Contracts'}
       </Button>
       {(contractsError || error) && (
         <Alert severity="error" sx={{ mt: 2 }}>

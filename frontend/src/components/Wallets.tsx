@@ -106,7 +106,7 @@ const Wallets: React.FC = () => {
   return (
     <>
       <Button variant="contained" color="primary" onClick={handleLoadWallets} sx={{ mt: 2 }} disabled={loading}>
-        {loading ? 'Connecting...' : 'Load Wallets'}
+        {loading ? 'Loading...' : 'Load Wallets'}
       </Button>
       {(walletsError || error) && (
         <Alert severity="error" sx={{ mt: 2 }}>
