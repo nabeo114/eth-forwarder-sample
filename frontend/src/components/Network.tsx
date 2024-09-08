@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, Button, Typography, Alert } from '@mui/material';
 import { useNetwork } from '../contexts/NetworkContext';
 
-const ConnectNetwork: React.FC = () => {
+const Network: React.FC = () => {
   const { network, connectNetwork, error: networkError } = useNetwork();
   const [networkName, setNetworkName] = useState<string | null>(null);
   const [networkChainId, setNetworkChainId] = useState<string | null>(null);
@@ -78,4 +78,4 @@ const ConnectNetwork: React.FC = () => {
   );
 };
 
-export default ConnectNetwork;
+export default Network;

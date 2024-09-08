@@ -3,7 +3,7 @@ import { Card, CardContent, Button, Typography, Alert } from '@mui/material';
 import { useNetwork } from '../contexts/NetworkContext';
 import { useContracts } from '../contexts/ContractContext';
 
-const LoadContracts: React.FC = () => {
+const Contracts: React.FC = () => {
   const { provider } = useNetwork();
   const { forwarder, recipient, loadContracts, error: contractsError } = useContracts();
   const [forwarderAddress, setForwarderAddress] = useState<string | null>(null);
@@ -82,4 +82,4 @@ const LoadContracts: React.FC = () => {
   );
 }
 
-export default LoadContracts;
+export default Contracts;

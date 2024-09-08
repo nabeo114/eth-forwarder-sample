@@ -1,7 +1,7 @@
 import React from 'react';
 import { Container, Box, Card, CardContent, Typography } from '@mui/material';
-import ConnectNetwork from './connectNetwork';
-import LoadContracts from './loadContracts';
+import Network from './Network';
+import Contracts from './Contracts';
 import Wallets from './Wallets';
 import MetaTransaction from './MetaTransaction';
 
@@ -12,13 +12,13 @@ const App: React.FC = () => {
         <Card sx={{ mt: 3 }}>
           <CardContent>
             <Typography variant="h4">Network</Typography>
-            <ConnectNetwork />
+            <Network />
           </CardContent>
         </Card>
         <Card sx={{ mt: 3 }}>
           <CardContent>
             <Typography variant="h4">Contracts</Typography>
-            <LoadContracts />
+            <Contracts />
           </CardContent>
         </Card>
         <Card sx={{ mt: 3 }}>
