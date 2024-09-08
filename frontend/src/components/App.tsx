@@ -2,7 +2,8 @@ import React from 'react';
 import { Container, Box, Card, CardContent, Typography } from '@mui/material';
 import ConnectNetwork from './connectNetwork';
 import LoadContracts from './loadContracts';
-import LoadWallets from './loadWallets';
+import Wallets from './Wallets';
+import MetaTransaction from './MetaTransaction';
 
 const App: React.FC = () => {
   return (
@@ -23,7 +24,13 @@ const App: React.FC = () => {
         <Card sx={{ mt: 3 }}>
           <CardContent>
             <Typography variant="h4">Wallets</Typography>
-            <LoadWallets />
+            <Wallets />
+          </CardContent>
+        </Card>
+        <Card sx={{ mt: 3 }}>
+          <CardContent>
+            <Typography variant="h4">MetaTransaction</Typography>
+            <MetaTransaction />
           </CardContent>
         </Card>
       </Box>

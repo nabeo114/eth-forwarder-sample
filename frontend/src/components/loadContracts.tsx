@@ -43,7 +43,6 @@ const LoadContracts: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log("useEffect:", { forwarder, recipient, provider, contractsError });
     if (forwarder && recipient) {
       fetchContractDetails();
     }
