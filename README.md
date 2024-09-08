@@ -1,10 +1,10 @@
 # Eth Forwarder Sample
 
-`eth-forwarder-sample` is a sample project demonstrating ERC-2771 (Meta-Transactions). This project uses Forwarder and Recipient smart contracts to showcase meta-transactions. It is inspired by the [MetaTxDemo project](https://github.com/tnakagawa/metatxdemo/tree/main), which provides additional context and examples for meta-transactions.
+`eth-forwarder-sample` demonstrates ERC-2771 (Meta-Transactions) using Forwarder and Recipient smart contracts. It is inspired by the [MetaTxDemo project](https://github.com/tnakagawa/metatxdemo/tree/main), which provides additional examples of meta-transactions.
 
 ## Overview
 
-This project serves as a sample for learning the basics of Ethereum meta-transactions. It deploys two smart contracts, Forwarder and Recipient, using the ERC-2771 standard.
+This project serves as a sample for learning Ethereum meta-transactions. It deploys two smart contracts, Forwarder and Recipient, that conform to the ERC-2771 standard.
 
 ## Installation
 
@@ -33,7 +33,7 @@ This project serves as a sample for learning the basics of Ethereum meta-transac
 
 1. **Configure the `.env` file:** 
 
-    Create a `.env` file in the `hardhat` directory and set the required environment variables. For example:
+    Create a `.env` file in the `hardhat` directory with the following variables:
 
     ```env
     INFURA_API_KEY=your_infura_api_key_here
@@ -42,8 +42,11 @@ This project serves as a sample for learning the basics of Ethereum meta-transac
     ```
 
     **Note:**
-    - The `ACCOUNT_PRIVATE_KEY` specified in the `.env` file will be used to deploy the Forwarder and Recipient smart contracts.
-    - The same `ACCOUNT_PRIVATE_KEY` will act as the relayer for meta-transactions.
+    - The `ACCOUNT_PRIVATE_KEY` will be used to deploy the Forwarder and Recipient contracts and also act as the relayer for meta-transactions.
+    - Contracts are deployed on the **Polygon Amoy testnet**. Ensure the `ACCOUNT_PRIVATE_KEY` is funded with MATIC tokens using the [Polygon Faucet](https://faucet.polygon.technology/).
+    - **INFURA_API_KEY**: Obtain this from [Infura](https://app.infura.io/) after creating an account.
+    - **KEYSTORE_PASSWORD**: Used to encrypt the keystore; you can set this to any desired string.
+
 
 ## Usage
 
@@ -64,6 +67,7 @@ This project serves as a sample for learning the basics of Ethereum meta-transac
 
 ## Demo Features
 
-- **Relayer and User Accounts:** The demo will create one relayer account (using the `ACCOUNT_PRIVATE_KEY` from the `.env` file) and two additional user accounts.
-- **ERC20 Token Minting:** You can mint ERC20 tokens to the user accounts.
-- **Token Transfers:** Transfers between user accounts will be executed by the relayer account specified in the `.env` file.
+- **Relayer and User Accounts:** The demo creates one relayer account (using the `ACCOUNT_PRIVATE_KEY` in the `.env` file) and two user accounts.
+- **ERC20 Token Minting:** ERC20 tokens can be minted to user accounts.
+- **Token Transfers:** Transfers between user accounts are performed by the relayer account.
+
