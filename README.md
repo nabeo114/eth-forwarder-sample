@@ -31,7 +31,7 @@ This project serves as a sample for learning Ethereum meta-transactions. It depl
     npm install
     ```
 
-1. **Configure the `.env` file:** 
+3. **Configure the `.env` file:** 
 
     Create a `.env` file in the `hardhat` directory with the following variables:
 
@@ -46,7 +46,6 @@ This project serves as a sample for learning Ethereum meta-transactions. It depl
     - Contracts are deployed on the **Polygon Amoy testnet**. Ensure the `ACCOUNT_PRIVATE_KEY` is funded with MATIC tokens using the [Polygon Faucet](https://faucet.polygon.technology/).
     - **INFURA_API_KEY**: Obtain this from [Infura](https://app.infura.io/) after creating an account.
     - **KEYSTORE_PASSWORD**: Used to encrypt the keystore; you can set this to any desired string.
-
 
 ## Usage
 
@@ -70,4 +69,3 @@ This project serves as a sample for learning Ethereum meta-transactions. It depl
 - **Relayer and User Accounts:** The demo creates one relayer account (using the `ACCOUNT_PRIVATE_KEY` in the `.env` file) and two user accounts.
 - **ERC20 Token Minting:** ERC20 tokens can be minted to user accounts.
 - **Token Transfers:** Transfers between user accounts are performed by the relayer account.
-
