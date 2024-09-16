@@ -44,8 +44,8 @@ This project serves as a sample for learning Ethereum meta-transactions. It depl
     **Note:**
     - The `ACCOUNT_PRIVATE_KEY` will be used to deploy the Forwarder and Recipient contracts and also act as the relayer for meta-transactions.
     - Contracts are deployed on the **Polygon Amoy testnet**. Ensure the `ACCOUNT_PRIVATE_KEY` is funded with MATIC tokens using the [Polygon Faucet](https://faucet.polygon.technology/).
-    - **INFURA_API_KEY**: Obtain this from [Infura](https://app.infura.io/) after creating an account.
-    - **KEYSTORE_PASSWORD**: Used to encrypt the keystore; you can set this to any desired string.
+    - `INFURA_API_KEY`: Obtain this from [Infura](https://app.infura.io/) after creating an account.
+    - `KEYSTORE_PASSWORD`: Used to encrypt the keystore; you can set this to any desired string.
 
 ## Usage
 
