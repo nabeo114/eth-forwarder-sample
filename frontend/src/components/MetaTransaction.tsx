@@ -59,7 +59,7 @@ const MetaTransaction: React.FC = () => {
       }
 
       // トークンをミント
-      const tx = await recipientWithRelayer.mint(mintAddress, ethers.parseUnits(mintAmount.toString()));
+      const tx = await recipientWithRelayer.mint(mintAddress, ethers.parseEther(mintAmount.toString()));
       console.log('Transaction sent, waiting for confirmation...');
       await tx.wait();
       console.log('Transaction confirmed');
