@@ -103,6 +103,51 @@ const Wallets: React.FC = () => {
     }
   }, [relayer, user1, user2, provider]);
 
+  // 初回レンダリング時にTransferイベントを監視開始
+  useEffect(() => {
+    if (!recipient || !relayer || !user1 || !user2) return;
+
+    // Transferイベントを監視
+    const monitorTransferEvents = async () => {
+      try {
+        // 環境変数が設定されているか確認
+        const infuraApiKey = process.env.INFURA_API_KEY;
+        if (!infuraApiKey) {
+          throw new Error('INFURA_API_KEY is not defined in environment variables');
+        }
+
+        // InfuraのURLからプロバイダーを生成
+        const socketProviderUrl = `wss://polygon-amoy.infura.io/ws/v3/${infuraApiKey}`;
+        const socketProvider = new ethers.WebSocketProvider(socketProviderUrl);
+
+        const filter = {
+          address: recipient.getAddress(),
+          topics: [ethers.id("Transfer(address,address,uint256)")]
+        };
+
+        // イベントの監視
+        socketProvider.on(filter, async (log) => {
+          console.log("Transfer event detected:", log);
+
+          // ウォレットの詳細を再取得
+          await fetchWalletDetails();
+        });
+
+        // コンポーネントがアンマウントされた際に WebSocket をクリーンアップ
+        return () => {
+          socketProvider.off(filter);
+          socketProvider.destroy();
+        };
+      } catch (error) {
+        const errorMessage = (error as Error).message;
+        console.error('Error monitoring Transfer events:', errorMessage);
+      }
+    };
+
+    monitorTransferEvents();
+
+  }, [recipient, relayer, user1, user2]);
+
   return (
     <>
       <Button variant="contained" color="primary" onClick={handleLoadWallets} sx={{ mt: 2 }} disabled={loading}>
