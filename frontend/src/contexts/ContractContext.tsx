@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState } from 'react';
-import { ethers } from 'ethers';
+import Web3 from 'web3';
 import contracts from '../../../hardhat/data/contracts.json';
 
 interface ContractContextType {
-  forwarder: ethers.Contract | null;
-  recipient: ethers.Contract | null;
-  loadContracts: (provider: ethers.Provider | null) => Promise<void>;
+  forwarder: any | null;
+  recipient: any | null;
+  loadContracts: (provider: Web3 | null) => Promise<void>;
   error: string | null;
 }
 
@@ -20,11 +20,11 @@ export const useContracts = () => {
 };
 
 export const ContractProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [forwarder, setForwarder] = useState<ethers.Contract | null>(null);
-  const [recipient, setRecipient] = useState<ethers.Contract | null>(null);
+  const [forwarder, setForwarder] = useState<any | null>(null);
+  const [recipient, setRecipient] = useState<any| null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const loadContracts = async (provider: ethers.Provider | null) => {
+  const loadContracts = async (provider: Web3 | null) => {
     setError(null);
     try {
       if (!provider) {
@@ -33,18 +33,16 @@ export const ContractProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       if (contracts.forwarder && contracts.recipient) {
         // Forwarderコントラクトのインスタンスを作成
-        const forwarderContract = new ethers.Contract(
-          contracts.forwarder.contractAddress,
+        const forwarderContract = new provider.eth.Contract(
           JSON.parse(contracts.forwarder.contractABI),
-          provider
+          contracts.forwarder.contractAddress
         );
         setForwarder(forwarderContract);
 
         // Recipientコントラクトのインスタンスを作成
-        const recipientContract = new ethers.Contract(
-          contracts.recipient.contractAddress,
+        const recipientContract = new provider.eth.Contract(
           JSON.parse(contracts.recipient.contractABI),
-          provider
+          contracts.recipient.contractAddress
         );
         setRecipient(recipientContract);
       } else {

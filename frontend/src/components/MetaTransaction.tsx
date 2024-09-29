@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ethers } from 'ethers';
+import Web3 from 'web3';
 import { Card, CardContent, Button, TextField, Tooltip, FormControl, InputLabel, Select, MenuItem, CircularProgress, Alert } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
 import { useNetwork } from '../contexts/NetworkContext';
@@ -43,25 +43,52 @@ const MetaTransaction: React.FC = () => {
     setMintLoading(true);
     try {
       // 必要なウォレットやコントラクトのチェック
-      if (!recipient || !relayer || !user1 || !user2) {
+      if (!provider || !recipient || !relayer || !user1 || !user2) {
         setMintError('Recipient, Relayer, User1 and User2 are required to mint tokens');
         return;
       }
-
-      const recipientWithRelayer = recipient.connect(relayer);
       
       // ミントするユーザのアドレスを取得
       let mintAddress;
       if (mintUser === USERS.USER1) {
-        mintAddress = await user1.getAddress();
+        mintAddress = user1.address;
       } else {
-        mintAddress = await user2.getAddress();
+        mintAddress = user2.address;
       }
 
-      // トークンをミント
-      const tx = await recipientWithRelayer.mint(mintAddress, ethers.parseEther(mintAmount.toString()));
+      // トランザクションデータの準備
+      const mintData = recipient.methods
+        .mint(mintAddress, Web3.utils.toWei(mintAmount.toString(), "ether"))
+        .encodeABI(); // トランザクションデータをエンコード
+
+      // ガスの見積もり
+      const gasLimit = await recipient.methods
+        .mint(mintAddress, Web3.utils.toWei(mintAmount.toString(), "ether"))
+        .estimateGas({ from: relayer.address });
+
+      // ネットワークの推奨手数料を取得
+      const feeData = await provider.eth.getFeeHistory(1, "latest", [25]);
+      const maxPriorityFeePerGas = feeData.reward[0][0];
+      const maxFeePerGas = feeData.baseFeePerGas; // 必要に応じて調整
+      console.log(feeData.baseFeePerGas)
+
+      // トランザクションの詳細を作成
+      const tx = {
+        from: relayer.address,
+        to: recipient.options.address, // コントラクトのアドレス
+        data: mintData, // ミントのデータ
+        gas: gasLimit, // ガスリミット
+        maxPriorityFeePerGas: maxPriorityFeePerGas || 0, // 0の場合に備えてデフォルト値を設定
+        maxFeePerGas: maxPriorityFeePerGas, // ToDo 暫定
+      };
+
+      // Relayerによるトランザクション署名
+      const signedTx = await relayer.signTransaction(tx);
+
+      // トランザクション送信
+      const receipt = await provider.eth.sendSignedTransaction(signedTx.rawTransaction);
+
       console.log('Transaction sent, waiting for confirmation...');
-      await tx.wait();
       console.log('Transaction confirmed');
       console.log(`Minted ${mintAmount} tokens to ${mintAddress}`);
     } catch (error) {
@@ -82,8 +109,8 @@ const MetaTransaction: React.FC = () => {
         return;
       }
 
-      const forwarderWithRelayer = forwarder.connect(relayer);
-      const recipientWithRelayer = recipient.connect(relayer);
+      const forwarderWithRelayer = forwarder.setProvider(relayer);
+      const recipientWithRelayer = recipient.setProvider(relayer);
       const eip712domain = await forwarderWithRelayer.eip712Domain();
       const domain = {
           chainId: eip712domain.chainId,
@@ -108,12 +135,12 @@ const MetaTransaction: React.FC = () => {
       let toAddress;
       if (transferUser === USERS.USER1) {
         signer = user1;
-        fromAddress = await user1.getAddress();
-        toAddress = await user2.getAddress();
+        fromAddress = user1.address;
+        toAddress = user2.address;
       } else {
         signer = user2;
-        fromAddress = await user2.getAddress();
-        toAddress = await user1.getAddress();
+        fromAddress = user2.address;
+        toAddress = user1.address;
       }
 
       // 送信データを準備
@@ -127,7 +154,7 @@ const MetaTransaction: React.FC = () => {
         to: recipientWithRelayer.target,
         value: BigInt(0),
         gas: BigInt(50000), // 必要に応じて調整
-        nonce: await forwarderWithRelayer.nonces(fromAddress),
+        nonce: parseInt(await forwarderWithRelayer.methods.getNonce(fromAddress).call()),
         deadline: (Math.floor(Date.now() / 1000) + 3600),
         data: data,
       };

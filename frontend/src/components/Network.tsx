@@ -4,7 +4,6 @@ import { useNetwork } from '../contexts/NetworkContext';
 
 const Network: React.FC = () => {
   const { network, connectNetwork, error: networkError } = useNetwork();
-  const [networkName, setNetworkName] = useState<string | null>(null);
   const [networkChainId, setNetworkChainId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -12,8 +11,7 @@ const Network: React.FC = () => {
   const fetchNetworkDetails = async () => {
     setError(null);
     try {
-      setNetworkName(network!.name);
-      setNetworkChainId(network!.chainId.toString());
+      setNetworkChainId((await network!.getId()).toString());
     } catch (error) {
       const errorMessage = (error as Error).message;
       console.error('Error fetching network details:', errorMessage);
@@ -54,16 +52,9 @@ const Network: React.FC = () => {
           {networkError || error}
         </Alert>
       )}
-      {(networkName || networkChainId) && (
+      {(networkChainId) && (
         <Card sx={{ mt: 3 }}>
           <CardContent>
-            {networkName && (
-              <Typography variant="h6">
-                Network Name: <Typography component="span" variant="body1" color="textSecondary">
-                  {networkName}
-                </Typography>
-              </Typography>
-            )}
             {networkChainId && (
               <Typography variant="h6">
                 Chain ID: <Typography component="span" variant="body1" color="textSecondary">

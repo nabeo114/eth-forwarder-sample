@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ethers } from 'ethers';
+import Web3 from 'web3';
 import { Card, CardContent, Button, Typography, Divider, Alert } from '@mui/material';
 import { useNetwork } from '../contexts/NetworkContext';
 import { useContracts } from '../contexts/ContractContext';
@@ -26,51 +26,51 @@ const Wallets: React.FC = () => {
     setError(null);
     try {
       if (relayer) {
-        const address = await relayer.getAddress();
+        const address = relayer.address;
         setRelayerAddress(address);
 
         if (provider) {
           // Relayerのネイティブトークンの残高を取得
-          const nativeBalance = await provider.getBalance(address);
-          setRelayerNativeBalance(ethers.formatEther(nativeBalance));
+          const nativeBalance = await provider.eth.getBalance(address);
+          setRelayerNativeBalance(Web3.utils.fromWei(nativeBalance, 'ether'));
         }
 
         if (recipient) {
           // RelayerのERC20トークン残高を取得
-          const tokenBalance = await recipient.balanceOf(address);
-          setRelayerTokenBalance(ethers.formatEther(tokenBalance));
+          const tokenBalance = await recipient.methods.balanceOf(address).call();
+          setRelayerTokenBalance(Web3.utils.fromWei(tokenBalance, 'ether'));
         }
       }
       if (user1) {
-        const address = await user1.getAddress();
+        const address = user1.address;
         setUser1Address(address);
 
         if (provider) {
           // User1のネイティブトークンの残高を取得
-          const nativeBalance = await provider.getBalance(address);
-          setUser1NativeBalance(ethers.formatEther(nativeBalance));
+          const nativeBalance = await provider.eth.getBalance(address);
+          setUser1NativeBalance(Web3.utils.fromWei(nativeBalance, 'ether'));
         }
 
         if (recipient) {
           // User1のERC20トークン残高を取得
-          const tokenBalance = await recipient.balanceOf(address);
-          setUser1TokenBalance(ethers.formatEther(tokenBalance));
+          const tokenBalance = await recipient.methods.balanceOf(address).call();
+          setUser1TokenBalance(Web3.utils.fromWei(tokenBalance, 'ether'));
         }
       }
       if (user2) {
-        const address = await user2.getAddress();
+        const address = user2.address;
         setUser2Address(address);
 
         if (provider) {
           // User2のネイティブトークンの残高を取得
-          const nativeBalance = await provider.getBalance(address);
-          setUser2NativeBalance(ethers.formatEther(nativeBalance));
+          const nativeBalance = await provider.eth.getBalance(address);
+          setUser2NativeBalance(Web3.utils.fromWei(nativeBalance, 'ether'));
         }
 
         if (recipient) {
           // User2のERC20トークン残高を取得
-          const tokenBalance = await recipient.balanceOf(address);
-          setUser2TokenBalance(ethers.formatEther(tokenBalance));
+          const tokenBalance = await recipient.methods.balanceOf(address).call();
+          setUser2TokenBalance(Web3.utils.fromWei(tokenBalance, 'ether'));
         }
       }
     } catch (error) {
@@ -118,25 +118,29 @@ const Wallets: React.FC = () => {
 
         // InfuraのURLからプロバイダーを生成
         const socketProviderUrl = `wss://polygon-amoy.infura.io/ws/v3/${infuraApiKey}`;
-        const socketProvider = new ethers.WebSocketProvider(socketProviderUrl);
+        const socketProvider = new Web3(new Web3.providers.WebsocketProvider(socketProviderUrl));
 
         const filter = {
-          address: recipient.getAddress(),
-          topics: [ethers.id("Transfer(address,address,uint256)")]
+          address: recipient.address,
+          topics: [Web3.utils.sha3("Transfer(address,address,uint256)")].filter(topic => topic !== undefined) as string[]
         };
 
         // イベントの監視
-        socketProvider.on(filter, async (log) => {
-          console.log("Transfer event detected:", log);
+        const logSubscription = await socketProvider.eth.subscribe('logs', filter);
+        logSubscription.on('data', async (data: any) => {
+          console.log("Transfer event detected:", data);
 
           // ウォレットの詳細を再取得
           await fetchWalletDetails();
         });
+        logSubscription.on('error', async (error: any) => console.log(error));
 
         // コンポーネントがアンマウントされた際に WebSocket をクリーンアップ
         return () => {
-          socketProvider.off(filter);
-          socketProvider.destroy();
+          socketProvider.eth.clearSubscriptions();
+          if (socketProvider.currentProvider && typeof socketProvider.currentProvider.disconnect === 'function') {
+            socketProvider.currentProvider.disconnect();
+          }
         };
       } catch (error) {
         const errorMessage = (error as Error).message;

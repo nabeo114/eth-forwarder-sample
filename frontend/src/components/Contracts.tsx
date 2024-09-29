@@ -15,10 +15,10 @@ const Contracts: React.FC = () => {
     setError(null);
     try {
       if (forwarder) {
-        setForwarderAddress(await forwarder.getAddress());
+        setForwarderAddress(forwarder.options.address);
       }
       if (recipient) {
-        setRecipientAddress(await recipient.getAddress());
+        setRecipientAddress(recipient.options.address);
       }
     } catch (error) {
       const errorMessage = (error as Error).message;

@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useState } from 'react';
-import { ethers } from 'ethers';
+import Web3 from 'web3';
 import accounts from '../../../hardhat/data/accounts.json';
+import type { Web3Account } from 'web3-eth-accounts';
 
 interface WalletContextType {
-  relayer: ethers.Signer | null;
-  user1: ethers.Signer | null;
-  user2: ethers.Signer | null;
-  loadWallets: (provider: ethers.Provider | null) => Promise<void>;
+  relayer: Web3Account | null;
+  user1: Web3Account | null;
+  user2: Web3Account | null;
+  loadWallets: (provider: any | null) => Promise<void>;
   error: string | null;
 }
 
@@ -21,17 +22,20 @@ export const useWallets = () => {
 };
 
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [relayer, setRelayer] = useState<ethers.Signer | null>(null);
-  const [user1, setUser1] = useState<ethers.Signer | null>(null);
-  const [user2, setUser2] = useState<ethers.Signer | null>(null);
+  const [relayer, setRelayer] = useState<Web3Account | null>(null);
+  const [user1, setUser1] = useState<Web3Account | null>(null);
+  const [user2, setUser2] = useState<Web3Account | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const loadWallets = async (provider: ethers.Provider | null) => {
+  const loadWallets = async (provider: any | null) => {
     setError(null);
     try {
       if (!provider) {
         throw new Error('Provider is required to connect wallets');
       }
+
+      // Web3インスタンスを作成
+      const web3 = new Web3(provider);
 
       // 環境変数が設定されているか確認
       const keystorePassword = process.env.KEYSTORE_PASSWORD;
@@ -41,28 +45,22 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       if (accounts.relayer && accounts.user1 && accounts.user2) {
         // Relayerウォレットのインスタンスを作成し、networkに接続
-        const relayerWallet = await ethers.Wallet.fromEncryptedJson(
-          accounts.relayer.keystore,
-          keystorePassword
-        );
-        const relayerConnected = relayerWallet.connect(provider);
-        setRelayer(relayerConnected);
+        const relayerWallet = await web3.eth.accounts.decrypt(accounts.relayer.keystore, keystorePassword);
+        const relayerAccount = web3.eth.accounts.privateKeyToAccount(relayerWallet.privateKey);
+        web3.eth.accounts.wallet.add(relayerAccount);
+        setRelayer(relayerAccount);
 
         // User1ウォレットのインスタンスを作成し、networkに接続
-        const user1Wallet = await ethers.Wallet.fromEncryptedJson(
-          accounts.user1.keystore,
-          keystorePassword
-        );
-        const user1Connected = user1Wallet.connect(provider);
-        setUser1(user1Connected);
+        const user1Wallet = await web3.eth.accounts.decrypt(accounts.user1.keystore, keystorePassword);
+        const user1Account = web3.eth.accounts.privateKeyToAccount(user1Wallet.privateKey);
+        web3.eth.accounts.wallet.add(user1Account);
+        setUser1(user1Account);
 
         // User2ウォレットのインスタンスを作成し、networkに接続
-        const user2Wallet = await ethers.Wallet.fromEncryptedJson(
-          accounts.user2.keystore,
-          keystorePassword
-        );
-        const user2Connected = user2Wallet.connect(provider);
-        setUser2(user2Connected);
+        const user2Wallet = await web3.eth.accounts.decrypt(accounts.user2.keystore, keystorePassword);
+        const user2Account = web3.eth.accounts.privateKeyToAccount(user2Wallet.privateKey);
+        web3.eth.accounts.wallet.add(user2Account);
+        setUser2(user2Account);
       } else {
         throw new Error('Wallets data is missing');
       }

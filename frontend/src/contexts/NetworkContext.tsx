@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState } from 'react';
-import { ethers } from 'ethers';
+import Web3 from 'web3';
+import {Net} from 'web3-net';
 
 interface NetworkContextType {
-  provider: ethers.JsonRpcProvider | null;
-  network: ethers.Network | null;
+  provider: Web3 | null;
+  network: Net | null;
   connectNetwork: () => Promise<void>;
   error: string | null;
 }
@@ -19,8 +20,8 @@ export const useNetwork = () => {
 };
 
 export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [provider, setProvider] = useState<ethers.JsonRpcProvider | null>(null);
-  const [network, setNetwork] = useState<ethers.Network | null>(null);
+  const [provider, setProvider] = useState<Web3 | null>(null);
+  const [network, setNetwork] = useState<Net | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const connectNetwork = async () => {
@@ -33,11 +34,10 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       // InfuraのURLからプロバイダーを生成
       const providerUrl = `https://polygon-amoy.infura.io/v3/${infuraApiKey}`;
-      const provider = new ethers.JsonRpcProvider(providerUrl);
-      const network = await provider.getNetwork();
+      const web3 = new Web3(providerUrl);
       
-      setProvider(provider);
-      setNetwork(network);
+      setProvider(web3);
+      setNetwork(web3.eth.net);
     } catch (error) {
       setError((error as Error).message);
     }
