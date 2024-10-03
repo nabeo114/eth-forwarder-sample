@@ -121,7 +121,7 @@ const Wallets: React.FC = () => {
         const socketProvider = new Web3(new Web3.providers.WebsocketProvider(socketProviderUrl));
 
         const filter = {
-          address: recipient.address,
+          address: recipient.options.address,
           topics: [Web3.utils.sha3("Transfer(address,address,uint256)")].filter(topic => topic !== undefined) as string[]
         };
 
