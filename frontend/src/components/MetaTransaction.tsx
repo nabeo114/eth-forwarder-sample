@@ -5,6 +5,7 @@ import { SelectChangeEvent } from '@mui/material/Select';
 import { useNetwork } from '../contexts/NetworkContext';
 import { useContracts } from '../contexts/ContractContext';
 import { useWallets } from '../contexts/WalletContext';
+import type { Web3Account } from 'web3-eth-accounts';
 
 // ミントまたはトークン転送時にどのユーザを対象にするかの選択肢
 const USERS = {
@@ -66,11 +67,7 @@ const MetaTransaction: React.FC = () => {
         .mint(mintAddress, Web3.utils.toWei(mintAmount.toString(), "ether"))
         .estimateGas({ from: relayer.address });
 
-      // ネットワークの推奨手数料を取得
-      const feeData = await provider.eth.getFeeHistory(1, "latest", [25]);
-      const maxPriorityFeePerGas = feeData.reward[0][0];
-      const maxFeePerGas = feeData.baseFeePerGas; // 必要に応じて調整
-      console.log(feeData.baseFeePerGas)
+      const gasPrice = await provider.eth.getGasPrice();
 
       // トランザクションの詳細を作成
       const tx = {
@@ -78,18 +75,14 @@ const MetaTransaction: React.FC = () => {
         to: recipient.options.address, // コントラクトのアドレス
         data: mintData, // ミントのデータ
         gas: gasLimit, // ガスリミット
-        maxPriorityFeePerGas: maxPriorityFeePerGas || 0, // 0の場合に備えてデフォルト値を設定
-        maxFeePerGas: maxPriorityFeePerGas, // ToDo 暫定
+        gasPrice: gasPrice, 
       };
 
       // Relayerによるトランザクション署名
       const signedTx = await relayer.signTransaction(tx);
 
       // トランザクション送信
-      const receipt = await provider.eth.sendSignedTransaction(signedTx.rawTransaction);
-
-      console.log('Transaction sent, waiting for confirmation...');
-      console.log('Transaction confirmed');
+      await provider.eth.sendSignedTransaction(signedTx.rawTransaction);
       console.log(`Minted ${mintAmount} tokens to ${mintAddress}`);
     } catch (error) {
       const errorMessage = (error as Error).message;
@@ -109,17 +102,15 @@ const MetaTransaction: React.FC = () => {
         return;
       }
 
-      const forwarderWithRelayer = forwarder.setProvider(relayer);
-      const recipientWithRelayer = recipient.setProvider(relayer);
-      const eip712domain = await forwarderWithRelayer.eip712Domain();
+      const eip712domain = await forwarder.methods.eip712Domain().call();
       const domain = {
-          chainId: eip712domain.chainId,
+          chainId: Number(eip712domain.chainId),
           name: eip712domain.name,
           verifyingContract: eip712domain.verifyingContract,
           version: eip712domain.version,
       };
       const types = {
-        ForwardRequest: [
+        EIP712Domain: [
             { type: "address", name: "from" },
             { type: "address", name: "to" },
             { type: "uint256", name: "value" },
@@ -130,7 +121,7 @@ const MetaTransaction: React.FC = () => {
         ],
       };
 
-      let signer;
+      let signer: Web3Account;
       let fromAddress;
       let toAddress;
       if (transferUser === USERS.USER1) {
@@ -144,23 +135,35 @@ const MetaTransaction: React.FC = () => {
       }
 
       // 送信データを準備
-      const data = recipientWithRelayer.interface.encodeFunctionData("transfer", [
-        toAddress,
-        ethers.parseEther(transferAmount.toString()),
-      ]);
+      const data = recipient.methods
+        .transfer(toAddress, Web3.utils.toWei(transferAmount.toString(), "ether"))
+        .encodeABI(); // トランザクションデータをエンコード;
       // メタトランザクション用のリクエストを作成
       const value = {
         from: fromAddress,
-        to: recipientWithRelayer.target,
-        value: BigInt(0),
-        gas: BigInt(50000), // 必要に応じて調整
-        nonce: parseInt(await forwarderWithRelayer.methods.getNonce(fromAddress).call()),
+        to: recipient.options.address,
+        value: 0,
+        gas: 50000, // 必要に応じて調整
+        nonce: parseInt(await forwarder.methods.nonces(fromAddress).call()),
         deadline: (Math.floor(Date.now() / 1000) + 3600),
         data: data,
       };
 
+      console.log(fromAddress);
+      console.log(domain);
+      console.log(value);
+      console.log(types);
+
       // リクエストに署名
-      const sign = await signer.signTypedData(domain, types, value);
+      const sign = await provider.eth.signTypedData(
+        fromAddress,
+        {
+          domain: domain,
+          message: value,
+          primaryType: "EIP712Domain",
+          types: types,
+        },
+      );
       // メタトランザクション用のリクエストを作成
       const request = {
         from: value.from,
@@ -172,10 +175,12 @@ const MetaTransaction: React.FC = () => {
         signature: sign,
       };
 
+      console.log("bbbbbb");
+
       // メタトランザクションを forwarder 経由で送信
-      const result = await forwarderWithRelayer.verify(request);
+      const result = await forwarder.methods.verify(request).call();
       if (result) {
-        const tx = await forwarderWithRelayer.execute(request)
+        const tx = await forwarder.methods.execute(request).send({from: relayer.address})
         console.log('Transaction sent, waiting for confirmation...');
         await tx.wait();
         console.log('Transaction confirmed');
